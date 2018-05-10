@@ -1,0 +1,913 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2018.1.1 (Build 604U)" ts="2018-05-10 09:05:29">
+<Class name="Demo.ComplexMap.DTLDemoBusinessRule">
+<Description>
+</Description>
+<Super>Ens.Rule.Definition</Super>
+<TimeChanged>64778,32671.916283</TimeChanged>
+<TimeCreated>64765,43701.869865</TimeCreated>
+
+<Parameter name="RuleAssistClass">
+<Default>EnsLib.MsgRouter.RuleAssist</Default>
+</Parameter>
+
+<XData name="RuleDefinition">
+<XMLNamespace>http://www.intersystems.com/rule</XMLNamespace>
+<Data><![CDATA[
+<ruleDefinition alias="" context="EnsLib.MsgRouter.RoutingEngine" production="">
+<ruleSet name="" effectiveBegin="" effectiveEnd="">
+<send transform="" target="StudentFinalGradeOperation"></send>
+</ruleSet>
+</ruleDefinition>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="Demo.ComplexMap.SemesterProduction">
+<Super>Ens.Production</Super>
+<TimeChanged>64768,37095.565757</TimeChanged>
+<TimeCreated>62756,60182.982118</TimeCreated>
+
+<XData name="ProductionDefinition">
+<Data><![CDATA[
+<Production Name="Demo.ComplexMap.SemesterProduction" LogGeneralTraceEvents="false">
+  <Description>Sample Production to illustrate the use of Complex Maps. NOTE: The source file, ComplexMap_Semester_Data.txt, as well as sample output files, should be located in [install_dir]/dev/ComplexMap/.</Description>
+  <ActorPoolSize>2</ActorPoolSize>
+  <Item Name="StudentGradeService" Category="" ClassName="EnsLib.RecordMap.Service.FileService" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="RecordMap">Demo.ComplexMap.StudentWCD</Setting>
+    <Setting Target="Adapter" Name="FilePath">C:\practice\in\</Setting>
+    <Setting Target="Adapter" Name="FileSpec">*.csv</Setting>
+    <Setting Target="Host" Name="TargetConfigNames">DTLDemoRouter</Setting>
+  </Item>
+  <Item Name="StudentFinalGradeOperation" Category="" ClassName="EnsLib.RecordMap.Operation.FileOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="RecordMap">Demo.ComplexMap.StudentPFFixed</Setting>
+    <Setting Target="Adapter" Name="FilePath">C:\practice\out\</Setting>
+  </Item>
+  <Item Name="DTLDemoRouter" Category="" ClassName="EnsLib.MsgRouter.RoutingEngine" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="Validation"></Setting>
+    <Setting Target="Host" Name="BusinessRuleName">Demo.ComplexMap.DTLDemoBusinessRule</Setting>
+  </Item>
+</Production>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="Demo.ComplexMap.StudentPFFixed">
+<Description>
+RECORDMAP: Modified during compilation of RecordMap 'Demo.ComplexMap.StudentPFFixed'
+on 2018-05-04 at 13:19:17.882 [2018-05-04 18:19:17.882 UTC]
+by user UnknownUser</Description>
+<Super>EnsLib.RecordMap.RecordMap</Super>
+<TimeChanged>64772,51557.883226</TimeChanged>
+<TimeCreated>64764,37724.05122</TimeCreated>
+
+<Method name="GetObject">
+<Description>
+Method to retrieve a record from a stream or device. This method will be generated based on the
+structure of the RecordMap. For testing purposes, a file name may be passed in the pStream argument.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,*pObject:%RegisteredObject,pTimeout:%Numeric=-1,&pLookAhead:%String="",pLabelFound:%Boolean=0]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		Set tStatus = $$$OK
+		Set pObject = $$$NULLOREF
+		If '$IsObject(pStream) {
+			Set tFilename = pStream
+			Set pStream = ##class(%IO.FileStream).%New()
+			Do pStream.Open(tFilename,,pTimeout,"UTF-8", .tStatus)
+			If $$$ISERR(tStatus) Quit
+		}
+		Set tObjectName = $parameter($this,"OBJECTNAME")
+		Set tObject = $classmethod(tObjectName,"%New")
+		If '$IsObject(tObject) {
+			Set tStatus = $$$ERROR($$$CannotCreateObject,tObjectName)
+			Quit
+		}
+		Set tObject.%Source = pStream.Name
+		Set tGetTopFields = $parameter(tObject,"INCLUDETOPFIELDS")
+		If pStream.AtEnd && (""=pLookAhead) {
+			Set tStatus = $$$ERROR($$$EnsRecordMapErrStreamAtEnd, pStream.Name)
+			Quit
+		}
+		Set pStream.CharEncoding = "UTF-8"
+
+		#; Parse incoming stream
+		Set tStatus = ..GetRecord(pStream, tObject, tGetTopFields, pTimeout, .pLookAhead, pLabelFound)
+		If $$$ISERR(tStatus) Quit
+	}
+	Catch ex {
+		Set tStatus = ex.AsStatus()
+	}
+	If $$$ISERR(tStatus) { Set pObject = $$$NULLOREF }
+	Else { Set pObject = tObject }
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Method name="PutObject">
+<Description>
+Method to write a record to a stream or device. This method will be generated based on the
+structure of the RecordMap. For testing purposes, a file name may be passed in the pStream argument.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,pObject:%RegisteredObject,pFlush:%Boolean=1,&pPadArray:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		Set tStatus = $$$OK
+		If '$IsObject(pStream) {
+			Set tFilename = pStream
+			Set pStream = ##class(%IO.FileStream).%New()
+			Do pStream.Open(tFilename,"WAE",,"UTF-8", .tStatus)
+			If $$$ISERR(tStatus) Quit
+		}
+		Set tHasTopFields = $parameter(pObject,"INCLUDETOPFIELDS")
+		Set pStream.CharEncoding = "UTF-8"
+
+		Set tStatus = ..PutRecord(pStream, pObject, tHasTopFields, .pPadArray)
+		If $$$ISERR(tStatus) Quit
+		If pFlush Do pStream.Flush(.tStatus)
+		If $$$ISERR(tStatus) Quit
+	}
+	Catch ex {
+		Set tStatus = ex.AsStatus()
+	}
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Parameter name="OBJECTNAME">
+<Default>Demo.ComplexMap.StudentPFFixed.Record</Default>
+</Parameter>
+
+<Method name="GetRecord">
+<Description>
+Internal helper method to perform parse of incoming data</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,pObject:%RegisteredObject,pGetTopFields:%Boolean,pTimeout:%Numeric,&pLookAhead:%String="",pLabelFound:%Boolean=0]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tStatus = $$$OK
+	If pLabelFound { Set tRecLabel = "" } 
+	Else { Set tRecLabel = "" } 
+	Set tMaxLen = 92 + $length(tRecLabel)
+	Set tStatus = ..chunkRecord(pStream, .tRecordData, .tCharCount, tMaxLen, pTimeout, $char(13,10), tRecLabel, .pLookAhead)
+	If $$$ISERR(tStatus) Quit tStatus
+	Set tIgnoreEarlyTerminator = 0
+	If $$$ISERR(tStatus) Quit tStatus
+	Set tMaxLocal = $$$MaxLocalLength
+	Set tRecordData("charcount") = +$get(tCharCount)
+	Set tCurrChunk = 1
+	Set tCurrPos = 1
+	Set tNewChunk = 1
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,10,"","","StudentID",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.StudentID = pObject.StudentIDDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,10,"","","ClassID",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.ClassID = pObject.ClassIDDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,8,"","","Grade",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.Grade = pObject.GradeDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,4,"","","Pass",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.Pass = pObject.PassDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,20,"","","FirstName",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.FirstName = pObject.FirstNameDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,20,"","","MiddleName",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.MiddleName = pObject.MiddleNameDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Set tCurrVal = ..checkFixedWidthChunk(.tStatus,.tNewChunk,.tCurrChunk,.tRecordData,.tCurrString,.tCurrLen,.tCurrPos,20,"","","LastName",tIgnoreEarlyTerminator)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pGetTopFields Set pObject.LastName = pObject.LastNameDisplayToLogical($ZStrip(tCurrVal, ">", $char(32)))
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Method name="PutRecord">
+<Description>
+Internal helper method to output object to a stream</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,pObject:%RegisteredObject,pHasTopFields:%Boolean,&pPadArray:%String]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tStatus = $$$OK
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).StudentIDLogicalToDisplay(pObject.StudentID), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 10 > tLen {
+		Set tPadding = $get(pPadArray(10 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (10 - tLen + 1)) = ""
+			Set pPadArray(10-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).ClassIDLogicalToDisplay(pObject.ClassID), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 10 > tLen {
+		Set tPadding = $get(pPadArray(10 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (10 - tLen + 1)) = ""
+			Set pPadArray(10-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).GradeLogicalToDisplay(pObject.Grade), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 8 > tLen {
+		Set tPadding = $get(pPadArray(8 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (8 - tLen + 1)) = ""
+			Set pPadArray(8-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).PassLogicalToDisplay(pObject.Pass), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 4 > tLen {
+		Set tPadding = $get(pPadArray(4 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (4 - tLen + 1)) = ""
+			Set pPadArray(4-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).FirstNameLogicalToDisplay(pObject.FirstName), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 20 > tLen {
+		Set tPadding = $get(pPadArray(20 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (20 - tLen + 1)) = ""
+			Set pPadArray(20-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).MiddleNameLogicalToDisplay(pObject.MiddleName), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 20 > tLen {
+		Set tPadding = $get(pPadArray(20 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (20 - tLen + 1)) = ""
+			Set pPadArray(20-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	If pHasTopFields { Set tValue = ##class(Demo.ComplexMap.StudentPFFixed.Record).LastNameLogicalToDisplay(pObject.LastName), tLen = $length(tValue) }
+	Else { Set tValue = "", tLen = 0}
+	If 20 > tLen {
+		Set tPadding = $get(pPadArray(20 - tLen))
+		If tPadding = "" {
+			Set $piece(tPadding, $char(32), (20 - tLen + 1)) = ""
+			Set pPadArray(20-tLen) = tPadding
+		}
+		Set tValue = tValue_tPadding
+	}
+	Do pStream.Write(tValue, 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	Do pStream.Write($char(13,10), 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Method name="GetGeneratedClasses">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>*pClasses:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Kill pClasses
+	Set pClasses("Demo.ComplexMap.StudentPFFixed.Record")=""
+	Set pClasses($classname())=""
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="getIdentifier">
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[""
+]]></Implementation>
+</Method>
+
+<Method name="getType">
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>EnsLib.RecordMap.Model.DataType.RecordType</ReturnType>
+<Implementation><![CDATA["fixedwidth"
+]]></Implementation>
+</Method>
+
+<XData name="RecordMap">
+<XMLNamespace>http://www.intersystems.com/Ensemble/RecordMap</XMLNamespace>
+<Data><![CDATA[
+<Record xmlns="http://www.intersystems.com/Ensemble/RecordMap" name="Demo.ComplexMap.StudentPFFixed" type="fixedwidth" char_encoding="UTF-8" targetClassname="Demo.ComplexMap.StudentPFFixed.Record" complexBatchManaged="1" paddingChars="\x20" padFromLeft="0" recordTerminator="\x0d\x0a" allowEarlyTerminator="0">
+  <Field name="StudentID" required="1" ignored="0" datatype="%Integer" width="10" index="1" repeating="0">
+  </Field>
+  <Field name="ClassID" required="1" ignored="0" datatype="%String" width="10" repeating="0">
+  </Field>
+  <Field name="Grade" required="1" ignored="0" datatype="%String" width="8" repeating="0">
+  </Field>
+  <Field name="Pass" required="0" ignored="0" datatype="%Boolean" width="4" repeating="0">
+  </Field>
+  <Field name="FirstName" required="1" ignored="0" datatype="%String" width="20" repeating="0">
+  </Field>
+  <Field name="MiddleName" required="0" ignored="0" datatype="%String" width="20" repeating="0">
+  </Field>
+  <Field name="LastName" required="1" ignored="0" datatype="%String" width="20" repeating="0">
+  </Field>
+</Record>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="Demo.ComplexMap.StudentPFFixed.Record">
+<Description>
+RECORDMAP: Generated from RecordMap 'Demo.ComplexMap.StudentPFFixed'
+on 2018-05-04 at 13:19:17.874 [2018-05-04 18:19:17.874 UTC]
+by user UnknownUser</Description>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>EnsLib.RecordMap.ComplexChild,%XML.Adaptor,Ens.Request,EnsLib.RecordMap.Base</Super>
+<TimeChanged>64772,51557.877982</TimeChanged>
+<TimeCreated>64772,51557.874305</TimeCreated>
+<Inheritance>right</Inheritance>
+
+<Parameter name="INCLUDETOPFIELDS">
+<Default>1</Default>
+</Parameter>
+
+<Property name="StudentID">
+<Type>%Integer</Type>
+<Required>1</Required>
+<Parameter name="MAXVAL" value="9999999999"/>
+</Property>
+
+<Property name="ClassID">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="10"/>
+</Property>
+
+<Property name="Grade">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="8"/>
+</Property>
+
+<Property name="Pass">
+<Type>%Boolean</Type>
+</Property>
+
+<Property name="FirstName">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="20"/>
+</Property>
+
+<Property name="MiddleName">
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="20"/>
+</Property>
+
+<Property name="LastName">
+<Type>%String</Type>
+<Required>1</Required>
+<Parameter name="MAXLEN" value="20"/>
+</Property>
+
+<Trigger name="OnDelete">
+<Code>	Set %ok = ##class(Demo.ComplexMap.StudentPFFixed.Record).%OnDelete($$$oidForm({ID})) If $$$ISERR(%ok) Quit
+</Code>
+<Event>DELETE</Event>
+</Trigger>
+
+<Storage name="Default">
+<Type>%Storage.Persistent</Type>
+<DataLocation>^Demo.ComplexMap.Stu4B74.RecordD</DataLocation>
+<DefaultData>RecordDefaultData</DefaultData>
+<IdLocation>^Demo.ComplexMap.Stu4B74.RecordD</IdLocation>
+<IndexLocation>^Demo.ComplexMap.Stu4B74.RecordI</IndexLocation>
+<StreamLocation>^Demo.ComplexMap.Stu4B74.RecordS</StreamLocation>
+<ExtentSize>2000000</ExtentSize>
+<Data name="RecordDefaultData">
+<Structure>listnode</Structure>
+<Subscript/>
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>StudentID</Value>
+</Value>
+<Value name="3">
+<Value>%Source</Value>
+</Value>
+<Value name="4">
+<Value>Grade</Value>
+</Value>
+<Value name="5">
+<Value>Pass</Value>
+</Value>
+<Value name="6">
+<Value>FirstName</Value>
+</Value>
+<Value name="7">
+<Value>MiddleName</Value>
+</Value>
+<Value name="8">
+<Value>LastName</Value>
+</Value>
+<Value name="9">
+<Value>ClassID</Value>
+</Value>
+</Data>
+</Storage>
+
+<Index name="StudentIDIdx">
+<Properties>StudentID</Properties>
+</Index>
+
+<Parameter name="RECORDMAPGENERATED">
+<Default>1</Default>
+</Parameter>
+</Class>
+
+
+<Class name="Demo.ComplexMap.StudentWCD">
+<Description>
+RECORDMAP: Modified during compilation of RecordMap 'Demo.ComplexMap.StudentWCD'
+on 2018-04-26 at 09:37:01.064 [2018-04-26 14:37:01.064 UTC]
+by user _SYSTEM</Description>
+<Super>EnsLib.RecordMap.RecordMap</Super>
+<TimeChanged>64772,48727.905581</TimeChanged>
+<TimeCreated>64764,38213.051837</TimeCreated>
+
+<Method name="GetObject">
+<Description>
+Method to retrieve a record from a stream or device. This method will be generated based on the
+structure of the RecordMap. For testing purposes, a file name may be passed in the pStream argument.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,*pObject:%RegisteredObject,pTimeout:%Numeric=-1,&pLookAhead:%String="",pLabelFound:%Boolean=0]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		Set tStatus = $$$OK
+		Set pObject = $$$NULLOREF
+		If '$IsObject(pStream) {
+			Set tFilename = pStream
+			Set pStream = ##class(%IO.FileStream).%New()
+			Do pStream.Open(tFilename,,pTimeout,"UTF-8", .tStatus)
+			If $$$ISERR(tStatus) Quit
+		}
+		Set tObjectName = $parameter($this,"OBJECTNAME")
+		Set tObject = $classmethod(tObjectName,"%New")
+		If '$IsObject(tObject) {
+			Set tStatus = $$$ERROR($$$CannotCreateObject,tObjectName)
+			Quit
+		}
+		Set tObject.%Source = pStream.Name
+		Set tGetTopFields = $parameter(tObject,"INCLUDETOPFIELDS")
+		If pStream.AtEnd && (""=pLookAhead) {
+			Set tStatus = $$$ERROR($$$EnsRecordMapErrStreamAtEnd, pStream.Name)
+			Quit
+		}
+		Set pStream.CharEncoding = "UTF-8"
+
+		#; Parse incoming stream
+		Set tStatus = ..GetRecord(pStream, tObject, tGetTopFields, pTimeout, .pLookAhead, pLabelFound)
+		If $$$ISERR(tStatus) Quit
+	}
+	Catch ex {
+		Set tStatus = ex.AsStatus()
+	}
+	If $$$ISERR(tStatus) { Set pObject = $$$NULLOREF }
+	Else { Set pObject = tObject }
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Method name="PutObject">
+<Description>
+Method to write a record to a stream or device. This method will be generated based on the
+structure of the RecordMap. For testing purposes, a file name may be passed in the pStream argument.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,pObject:%RegisteredObject,pFlush:%Boolean=1,&pPadArray:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Try {
+		Set tStatus = $$$OK
+		If '$IsObject(pStream) {
+			Set tFilename = pStream
+			Set pStream = ##class(%IO.FileStream).%New()
+			Do pStream.Open(tFilename,"WAE",,"UTF-8", .tStatus)
+			If $$$ISERR(tStatus) Quit
+		}
+		Set tHasTopFields = $parameter(pObject,"INCLUDETOPFIELDS")
+		Set pStream.CharEncoding = "UTF-8"
+
+		Set tStatus = ..PutRecord(pStream, pObject, tHasTopFields, .pPadArray)
+		If $$$ISERR(tStatus) Quit
+		If pFlush Do pStream.Flush(.tStatus)
+		If $$$ISERR(tStatus) Quit
+	}
+	Catch ex {
+		Set tStatus = ex.AsStatus()
+	}
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Parameter name="OBJECTNAME">
+<Default>Demo.ComplexMap.StudentWCD.Record</Default>
+</Parameter>
+
+<Method name="GetRecord">
+<Description>
+Internal helper method to perform parse of incoming data</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,pObject:%RegisteredObject,pGetTopFields:%Boolean,pTimeout:%Numeric,&pLookAhead:%String="",pLabelFound:%Boolean=0]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tStatus = $$$OK
+	If pLabelFound { Set tRecLabel = "" } 
+	Else { Set tRecLabel = "" } 
+	Set tStatus = ..chunkRecord(pStream, .tRecordData, .tCharCount, "", pTimeout, $char(13,10), tRecLabel, .pLookAhead, "")
+	If $$$ISERR(tStatus) Quit tStatus
+	Set tMaxLocal = $$$MaxLocalLength
+	Set tRecordData("charcount") = +$get(tCharCount)
+	Set tCurrChunk = 1
+	Set tTopPiece = 1
+	Set tCurrSep = 1
+	Set tStrings = 1
+	Set tCurrString = ""
+	Set tSeps = $listbuild($char(44))
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Else {
+		Set tCurrString = tRecordData(tCurrChunk)
+		Set tCurrPiece = 1
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.ClassID = tCurrString
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.StudentID =  pObject.StudentIDDisplayToLogical(tCurrString)
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.Grade =  pObject.GradeDisplayToLogical(tCurrString)
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.LastName = tCurrString
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.FirstName = tCurrString
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.MiddleName = tCurrString
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.Email = tCurrString
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.Phone = tCurrString
+	}
+	If '$data(tRecordData(tCurrChunk, "block")) {
+		Set tCurrString = $piece(tRecordData(tCurrChunk), $char(44), tTopPiece)
+	}
+	Do ..checkMerge(.tCurrChunk, .tRecordData, .tCurrString, $char(44), .tTopPiece)
+	If pGetTopFields {
+		Set pObject.Phone1 = tCurrString
+	}
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Method name="PutRecord">
+<Description>
+Internal helper method to output object to a stream</Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pStream:%IO.DeviceStream,pObject:%RegisteredObject,pHasTopFields:%Boolean,&pPadArray:%String]]></FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tStatus = $$$OK
+	Do pStream.Write($select(pHasTopFields: pObject.ClassID,1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.StudentIDLogicalToDisplay(pObject.StudentID),1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.GradeLogicalToDisplay(pObject.Grade),1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.LastName,1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.FirstName,1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.MiddleName,1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.Email,1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.Phone,1: ""),0)
+	Do pStream.Write($char(44) _ $select(pHasTopFields: pObject.Phone1,1: ""),0)
+	Do pStream.Write($char(13,10), 0, .tStatus)
+	If $$$ISERR(tStatus) Quit tStatus
+	Quit tStatus
+]]></Implementation>
+</Method>
+
+<Method name="GetGeneratedClasses">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>*pClasses:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Kill pClasses
+	Set pClasses("Demo.ComplexMap.StudentWCD.Record")=""
+	Set pClasses($classname())=""
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="getIdentifier">
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[""
+]]></Implementation>
+</Method>
+
+<Method name="getType">
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>EnsLib.RecordMap.Model.DataType.RecordType</ReturnType>
+<Implementation><![CDATA["delimited"
+]]></Implementation>
+</Method>
+
+<XData name="RecordMap">
+<XMLNamespace>http://www.intersystems.com/Ensemble/RecordMap</XMLNamespace>
+<Data><![CDATA[
+<Record xmlns="http://www.intersystems.com/Ensemble/RecordMap" name="Demo.ComplexMap.StudentWCD" type="delimited" char_encoding="UTF-8" targetClassname="Demo.ComplexMap.StudentWCD.Record" complexBatchManaged="1" padFromLeft="0" recordTerminator="\x0d\x0a" allowEarlyTerminator="0">
+  <Separators>
+    <Separator>,</Separator>
+  </Separators>
+  <Field name="ClassID" required="1" ignored="0" datatype="%String" repeating="0">
+  </Field>
+  <Field name="StudentID" required="1" ignored="0" datatype="%Integer" index="1" repeating="0">
+  </Field>
+  <Field name="Grade" required="0" ignored="0" datatype="%Decimal" repeating="0">
+  </Field>
+  <Field name="LastName" required="1" ignored="0" datatype="%String" repeating="0">
+  </Field>
+  <Field name="FirstName" required="1" ignored="0" datatype="%String" repeating="0">
+  </Field>
+  <Field name="MiddleName" required="0" ignored="0" datatype="%String" repeating="0">
+  </Field>
+  <Field name="Email" required="0" ignored="0" datatype="%String" repeating="0">
+  </Field>
+  <Field name="Phone" required="0" ignored="0" datatype="%String" repeating="0">
+  </Field>
+  <Field name="Phone1" required="0" ignored="0" datatype="%String">
+  </Field>
+</Record>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="Demo.ComplexMap.StudentWCD.Record">
+<Description>
+RECORDMAP: Generated from RecordMap 'Demo.ComplexMap.StudentWCD'
+on 2018-04-26 at 09:37:01.045 [2018-04-26 14:37:01.045 UTC]
+by user _SYSTEM</Description>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>EnsLib.RecordMap.ComplexChild,%XML.Adaptor,Ens.Request,EnsLib.RecordMap.Base</Super>
+<TimeChanged>64764,38221.150981</TimeChanged>
+<TimeCreated>64764,38221.045792</TimeCreated>
+<Inheritance>right</Inheritance>
+
+<Parameter name="INCLUDETOPFIELDS">
+<Default>1</Default>
+</Parameter>
+
+<Property name="ClassID">
+<Type>%String</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="StudentID">
+<Type>%Integer</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="Grade">
+<Type>%Integer</Type>
+</Property>
+
+<Property name="LastName">
+<Type>%String</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="FirstName">
+<Type>%String</Type>
+<Required>1</Required>
+</Property>
+
+<Property name="MiddleName">
+<Type>%String</Type>
+</Property>
+
+<Property name="Email">
+<Type>%String</Type>
+</Property>
+
+<Property name="Phone">
+<Type>%String</Type>
+</Property>
+
+<Property name="Phone1">
+<Type>%String</Type>
+</Property>
+
+<Trigger name="OnDelete">
+<Code>	Set %ok = ##class(Demo.ComplexMap.StudentWCD.Record).%OnDelete($$$oidForm({ID})) If $$$ISERR(%ok) Quit
+</Code>
+<Event>DELETE</Event>
+</Trigger>
+
+<Index name="StudentIDIdx">
+<Properties>StudentID</Properties>
+</Index>
+
+<Parameter name="RECORDMAPGENERATED">
+<Default>1</Default>
+</Parameter>
+
+<Storage name="Default">
+<Type>%Storage.Persistent</Type>
+<DataLocation>^Demo.ComplexMap.Stu5694.RecordD</DataLocation>
+<DefaultData>RecordDefaultData</DefaultData>
+<IdLocation>^Demo.ComplexMap.Stu5694.RecordD</IdLocation>
+<IndexLocation>^Demo.ComplexMap.Stu5694.RecordI</IndexLocation>
+<StreamLocation>^Demo.ComplexMap.Stu5694.RecordS</StreamLocation>
+<ExtentSize>2000000</ExtentSize>
+<Data name="RecordDefaultData">
+<Structure>listnode</Structure>
+<Subscript/>
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>ClassID</Value>
+</Value>
+<Value name="3">
+<Value>%Source</Value>
+</Value>
+<Value name="4">
+<Value>Grade</Value>
+</Value>
+<Value name="5">
+<Value>LastName</Value>
+</Value>
+<Value name="6">
+<Value>FirstName</Value>
+</Value>
+<Value name="7">
+<Value>MiddleName</Value>
+</Value>
+<Value name="8">
+<Value>Email</Value>
+</Value>
+<Value name="9">
+<Value>Phone</Value>
+</Value>
+<Value name="10">
+<Value>Phone1</Value>
+</Value>
+<Value name="11">
+<Value>StudentID</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="Demo.HL7.MsgRouter.Functions">
+<Description>
+Functions to use in rule definitions for the sample message router production.</Description>
+<ClassType/>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>Ens.Rule.FunctionSet</Super>
+<TimeChanged>64623,32377</TimeChanged>
+<TimeCreated>60211,45594.129234</TimeCreated>
+
+<Method name="DayOfWeek">
+<Description>
+Returns the ordinal position of the day in the week, 
+where 1 is Sunday, 2 is Monday, and so on.</Description>
+<Final>1</Final>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[$zd($H,10)
+]]></Implementation>
+</Method>
+
+<Method name="TimeInSeconds">
+<Description>
+Returns the time as a number of seconds since midnight.</Description>
+<Final>1</Final>
+<ClassMethod>1</ClassMethod>
+<CodeMode>expression</CodeMode>
+<ReturnType>%Integer</ReturnType>
+<Implementation><![CDATA[$p($H,",",2)
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Project name="EnsExportProduction_2018-05-10 09-05-12_809-4" LastModified="2018-05-10 09:05:29.185598">
+  <ProjectDescription>Studio Project generated from Production 'Demo.ComplexMap.SemesterProduction' at 2018-05-10 13:05:12.809 UTC</ProjectDescription>
+  <Items>
+    <ProjectItem name="Demo.ComplexMap.DTLDemoBusinessRule" type="CLS"></ProjectItem>
+    <ProjectItem name="Demo.ComplexMap.SemesterProduction" type="CLS"></ProjectItem>
+    <ProjectItem name="Demo.ComplexMap.StudentPFFixed" type="CLS"></ProjectItem>
+    <ProjectItem name="Demo.ComplexMap.StudentPFFixed.Record" type="CLS"></ProjectItem>
+    <ProjectItem name="Demo.ComplexMap.StudentWCD" type="CLS"></ProjectItem>
+    <ProjectItem name="Demo.ComplexMap.StudentWCD.Record" type="CLS"></ProjectItem>
+    <ProjectItem name="Demo.HL7.MsgRouter.Functions" type="CLS"></ProjectItem>
+    <ProjectItem name="EnsExportNotes.EnsExportProduction_2018-05-10 09-05-12_809-4.PTD" type="PTD"></ProjectItem>
+  </Items>
+</Project>
+
+
+<Document name="EnsExportNotes.EnsExportProduction_2018-05-10 09-05-12_809-4.PTD"><ProjectTextDocument name="EnsExportNotes.EnsExportProduction_2018-05-10 09-05-12_809-4" description="Export Notes for export EnsExportProduction_2018-05-10 09-05-12_809-4">
+<![CDATA[<Deployment>
+<Creation>
+<Machine>USE7480KDAWN.ISCINTERNAL.COM</Machine>
+<Instance>IRISV18V1V1V604</Instance>
+<Namespace>DTLDEMO</Namespace>
+<SourceProduction>Demo.ComplexMap.SemesterProduction</SourceProduction>
+<Username>UnknownUser</Username>
+<UTC>2018-05-10 13:05:29.159</UTC>
+</Creation>
+<Notes>
+</Notes>
+<Contents>
+<ExportProject>EnsExportProduction_2018-05-10 09-05-12_809-4</ExportProject>
+<Item num="1">Demo.ComplexMap.DTLDemoBusinessRule.CLS</Item>
+<Item num="2">Demo.ComplexMap.SemesterProduction.CLS</Item>
+<Item num="3">Demo.ComplexMap.StudentPFFixed.CLS</Item>
+<Item num="4">Demo.ComplexMap.StudentPFFixed.Record.CLS</Item>
+<Item num="5">Demo.ComplexMap.StudentWCD.CLS</Item>
+<Item num="6">Demo.ComplexMap.StudentWCD.Record.CLS</Item>
+<Item num="7">Demo.HL7.MsgRouter.Functions.CLS</Item>
+</Contents>
+<ProductionClassInExport>Demo.ComplexMap.SemesterProduction</ProductionClassInExport>
+</Deployment>
+
+]]></ProjectTextDocument>
+</Document></Export>
