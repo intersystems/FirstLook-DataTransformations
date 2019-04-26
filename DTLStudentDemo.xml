@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2018.1.1 (Build 604U)" ts="2018-05-10 09:05:29">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2018.1.2 (Build 609U)" ts="2019-04-26 14:06:30">
 <Class name="Demo.ComplexMap.DTLDemoBusinessRule">
 <Description>
 </Description>
@@ -26,7 +26,7 @@
 
 <Class name="Demo.ComplexMap.SemesterProduction">
 <Super>Ens.Production</Super>
-<TimeChanged>64768,37095.565757</TimeChanged>
+<TimeChanged>65129,50300.608431</TimeChanged>
 <TimeCreated>62756,60182.982118</TimeCreated>
 
 <XData name="ProductionDefinition">
@@ -60,7 +60,7 @@ RECORDMAP: Modified during compilation of RecordMap 'Demo.ComplexMap.StudentPFFi
 on 2018-05-04 at 13:19:17.882 [2018-05-04 18:19:17.882 UTC]
 by user UnknownUser</Description>
 <Super>EnsLib.RecordMap.RecordMap</Super>
-<TimeChanged>64772,51557.883226</TimeChanged>
+<TimeChanged>65129,50338.047654</TimeChanged>
 <TimeCreated>64764,37724.05122</TimeCreated>
 
 <Method name="GetObject">
@@ -325,7 +325,7 @@ Internal helper method to output object to a stream</Description>
   </Field>
   <Field name="ClassID" required="1" ignored="0" datatype="%String" width="10" repeating="0">
   </Field>
-  <Field name="Grade" required="1" ignored="0" datatype="%String" width="8" repeating="0">
+  <Field name="Grade" required="1" ignored="0" datatype="%Integer" width="8" repeating="0">
   </Field>
   <Field name="Pass" required="0" ignored="0" datatype="%Boolean" width="4" repeating="0">
   </Field>
@@ -348,7 +348,7 @@ on 2018-05-04 at 13:19:17.874 [2018-05-04 18:19:17.874 UTC]
 by user UnknownUser</Description>
 <ProcedureBlock>1</ProcedureBlock>
 <Super>EnsLib.RecordMap.ComplexChild,%XML.Adaptor,Ens.Request,EnsLib.RecordMap.Base</Super>
-<TimeChanged>64772,51557.877982</TimeChanged>
+<TimeChanged>65129,50467.852806</TimeChanged>
 <TimeCreated>64772,51557.874305</TimeCreated>
 <Inheritance>right</Inheritance>
 
@@ -369,9 +369,9 @@ by user UnknownUser</Description>
 </Property>
 
 <Property name="Grade">
-<Type>%String</Type>
+<Type>%Integer</Type>
 <Required>1</Required>
-<Parameter name="MAXLEN" value="8"/>
+<Parameter name="MAXVAL" value="9999999999"/>
 </Property>
 
 <Property name="Pass">
@@ -396,8 +396,7 @@ by user UnknownUser</Description>
 </Property>
 
 <Trigger name="OnDelete">
-<Code>	Set %ok = ##class(Demo.ComplexMap.StudentPFFixed.Record).%OnDelete($$$oidForm({ID})) If $$$ISERR(%ok) Quit
-</Code>
+<Code>	Set %ok = ##class(Demo.ComplexMap.StudentPFFixed.Record).%OnDelete($$$oidForm({ID})) If $$$ISERR(%ok) Quit</Code>
 <Event>DELETE</Event>
 </Trigger>
 
@@ -410,8 +409,6 @@ by user UnknownUser</Description>
 <StreamLocation>^Demo.ComplexMap.Stu4B74.RecordS</StreamLocation>
 <ExtentSize>2000000</ExtentSize>
 <Data name="RecordDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
 <Value name="1">
 <Value>%%CLASSNAME</Value>
 </Value>
@@ -724,7 +721,7 @@ on 2018-04-26 at 09:37:01.045 [2018-04-26 14:37:01.045 UTC]
 by user _SYSTEM</Description>
 <ProcedureBlock>1</ProcedureBlock>
 <Super>EnsLib.RecordMap.ComplexChild,%XML.Adaptor,Ens.Request,EnsLib.RecordMap.Base</Super>
-<TimeChanged>64764,38221.150981</TimeChanged>
+<TimeChanged>65129,50490.797444</TimeChanged>
 <TimeCreated>64764,38221.045792</TimeCreated>
 <Inheritance>right</Inheritance>
 
@@ -743,7 +740,7 @@ by user _SYSTEM</Description>
 </Property>
 
 <Property name="Grade">
-<Type>%Integer</Type>
+<Type>%Decimal</Type>
 </Property>
 
 <Property name="LastName">
@@ -773,8 +770,7 @@ by user _SYSTEM</Description>
 </Property>
 
 <Trigger name="OnDelete">
-<Code>	Set %ok = ##class(Demo.ComplexMap.StudentWCD.Record).%OnDelete($$$oidForm({ID})) If $$$ISERR(%ok) Quit
-</Code>
+<Code>	Set %ok = ##class(Demo.ComplexMap.StudentWCD.Record).%OnDelete($$$oidForm({ID})) If $$$ISERR(%ok) Quit</Code>
 <Event>DELETE</Event>
 </Trigger>
 
@@ -795,8 +791,6 @@ by user _SYSTEM</Description>
 <StreamLocation>^Demo.ComplexMap.Stu5694.RecordS</StreamLocation>
 <ExtentSize>2000000</ExtentSize>
 <Data name="RecordDefaultData">
-<Structure>listnode</Structure>
-<Subscript/>
 <Value name="1">
 <Value>%%CLASSNAME</Value>
 </Value>
@@ -869,8 +863,8 @@ Returns the time as a number of seconds since midnight.</Description>
 </Class>
 
 
-<Project name="EnsExportProduction_2018-05-10 09-05-12_809-4" LastModified="2018-05-10 09:05:29.185598">
-  <ProjectDescription>Studio Project generated from Production 'Demo.ComplexMap.SemesterProduction' at 2018-05-10 13:05:12.809 UTC</ProjectDescription>
+<Project name="EnsExportProduction_2019-04-26 14-04-49_920-4" LastModified="2019-04-26 14:06:30.299416">
+  <ProjectDescription>Studio Project generated from Production 'Demo.ComplexMap.SemesterProduction' at 2019-04-26 18:04:49.920 UTC</ProjectDescription>
   <Items>
     <ProjectItem name="Demo.ComplexMap.DTLDemoBusinessRule" type="CLS"></ProjectItem>
     <ProjectItem name="Demo.ComplexMap.SemesterProduction" type="CLS"></ProjectItem>
@@ -879,25 +873,25 @@ Returns the time as a number of seconds since midnight.</Description>
     <ProjectItem name="Demo.ComplexMap.StudentWCD" type="CLS"></ProjectItem>
     <ProjectItem name="Demo.ComplexMap.StudentWCD.Record" type="CLS"></ProjectItem>
     <ProjectItem name="Demo.HL7.MsgRouter.Functions" type="CLS"></ProjectItem>
-    <ProjectItem name="EnsExportNotes.EnsExportProduction_2018-05-10 09-05-12_809-4.PTD" type="PTD"></ProjectItem>
+    <ProjectItem name="EnsExportNotes.EnsExportProduction_2019-04-26 14-04-49_920-4.PTD" type="PTD"></ProjectItem>
   </Items>
 </Project>
 
 
-<Document name="EnsExportNotes.EnsExportProduction_2018-05-10 09-05-12_809-4.PTD"><ProjectTextDocument name="EnsExportNotes.EnsExportProduction_2018-05-10 09-05-12_809-4" description="Export Notes for export EnsExportProduction_2018-05-10 09-05-12_809-4">
+<Document name="EnsExportNotes.EnsExportProduction_2019-04-26 14-04-49_920-4.PTD"><ProjectTextDocument name="EnsExportNotes.EnsExportProduction_2019-04-26 14-04-49_920-4" description="Export Notes for export EnsExportProduction_2019-04-26 14-04-49_920-4">
 <![CDATA[<Deployment>
 <Creation>
 <Machine>USE7480KDAWN.ISCINTERNAL.COM</Machine>
-<Instance>IRISV18V1V1V604</Instance>
-<Namespace>DTLDEMO</Namespace>
+<Instance>IRIS2018V1V2V609R</Instance>
+<Namespace>DTLFIRSTLOOK</Namespace>
 <SourceProduction>Demo.ComplexMap.SemesterProduction</SourceProduction>
 <Username>UnknownUser</Username>
-<UTC>2018-05-10 13:05:29.159</UTC>
+<UTC>2019-04-26 18:06:30.294</UTC>
 </Creation>
 <Notes>
 </Notes>
 <Contents>
-<ExportProject>EnsExportProduction_2018-05-10 09-05-12_809-4</ExportProject>
+<ExportProject>EnsExportProduction_2019-04-26 14-04-49_920-4</ExportProject>
 <Item num="1">Demo.ComplexMap.DTLDemoBusinessRule.CLS</Item>
 <Item num="2">Demo.ComplexMap.SemesterProduction.CLS</Item>
 <Item num="3">Demo.ComplexMap.StudentPFFixed.CLS</Item>
