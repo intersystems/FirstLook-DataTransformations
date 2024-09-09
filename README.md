@@ -1,5 +1,5 @@
 # FirstLook-DTL
-This repository provides the sample production and csv file that you will need to work through the demo in <a href="http://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=AFL_dtl">First Look: Data Transformations</a>.
+This repository provides the sample production and csv file that you will need to work through the demo in <a href="https://learning.intersystems.com/course/view.php?name=DataTransformationsIntro">Creating a Data Transformation</a>.
 
 Files in this sample include:
 
